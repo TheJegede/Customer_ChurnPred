@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Telco customer churn prediction project using the WA_Fn-UseC_-Telco-Customer-Churn dataset. The goal is a full ML pipeline from data loading through a deployed API and dashboard.
+Telco customer churn prediction project using the WA_Fn-UseC_-Telco-Customer-Churn dataset. Full ML pipeline from data loading through model tracking and a Streamlit portfolio dashboard.
 
 ## Common Commands
 
@@ -26,8 +26,6 @@ python src/data/loader.py "path/to/file.csv"
 
 # Run tests (tests/ is currently empty — add test files before running)
 pytest tests/
-
-# Run a single test file / test by name
 pytest tests/test_loader.py
 pytest tests/test_loader.py::test_function_name
 
@@ -38,7 +36,7 @@ python app/generate_app_data.py   # writes data/predictions.csv + data/model_res
 python -m streamlit run app/streamlit_app.py
 # Then open http://localhost:8501
 
-# MLflow — start tracking server (runs are stored in mlruns/ at project root)
+# MLflow — start tracking server (runs stored in mlruns/ at project root)
 # Use python -m because the mlflow executable may not be on PATH
 python -m mlflow server --host 127.0.0.1 --port 5000
 # Then open http://localhost:5000
@@ -58,25 +56,42 @@ src/          # installable package (ml_project, pip install -e .)
 app/          # streamlit_app.py (4-page portfolio dashboard) + generate_app_data.py
 notebooks/    # eda.ipynb with exploratory analysis
 tests/        # pytest suite (pending — only __init__.py exists)
+models/       # serialized .pkl files (gitignored)
+mlruns/       # MLflow file-based tracking store (gitignored)
 ```
 
 `src/` is the package root (`package_dir={"": "src"}` in `setup.py`), so imports are `from data.loader import ...` — not `from src.data.loader import ...`.
 
 **Within-package script imports:** modules in `src/data/` import each other with bare names (`from loader import load_csv`, `from quality import check_data_quality`) because they are run as scripts inside that directory. When imported from outside (e.g. tests), use the full package path: `from data.loader import load_csv`.
 
+**No FastAPI implementation:** `fastapi` and `uvicorn` appear in requirements.txt but no REST API currently exists. The serving layer is Streamlit only.
+
 ## Pipeline Data Flow
 
 ```
 Raw CSV
-  → loader.py::load_csv()          # returns DataFrame, no mutation
-  → quality.py::check_data_quality()  # runs gate; exits 1 on FAIL
-  → cleaner.py::clean_data()       # saves data/cleaned.csv
-  → engineering.py::create_features()   # 12 new features appended
-  → engineering.py::select_features()   # drops high-corr / low-variance
-  → run_features.py                # saves data/features.csv
+  → loader.py::load_csv()              # returns DataFrame, no mutation
+  → quality.py::check_data_quality()   # runs gate; exits 1 on FAIL
+  → cleaner.py::clean_data()           # saves data/cleaned.csv
+  → engineering.py::create_features()  # 12 new features appended
+  → engineering.py::select_features()  # drops high-corr / low-variance
+  → run_features.py                    # saves data/features.csv
 ```
 
 `data/` is gitignored — intermediate CSVs (`cleaned.csv`, `features.csv`) are never committed.
+
+## Model Training Pipeline (4 stages)
+
+The models in `src/models/` are meant to be run in sequence:
+
+1. **`baseline.py`** — LogisticRegression (class_weight="balanced"); saves `models/baseline.pkl`. Establishes performance floor (test AUC ~0.848).
+2. **`train_models.py`** — Random Forest, XGBoost (default), LightGBM with 5-fold stratified CV; saves each to `models/`. Produces comparison table.
+3. **`tuning.py`** — Optuna TPE search (30 trials × 5-fold CV) over XGBoost hyperparameters; saves `models/best_params.json` and `models/tuned_model.pkl`.
+4. **`run_training.py`** — MLflow orchestrator: trains baseline + tuned XGBoost, logs params/metrics/artifacts to `mlruns/`, selects best by test AUC, saves `models/production_model.pkl`.
+
+`generate_app_data.py` must be re-run after any model change — it reads `production_model.pkl` and regenerates `data/predictions.csv` and `data/model_results.json` for the dashboard.
+
+**Train/test split constants** (shared across all stages): `TEST_SIZE=0.20`, `RANDOM_STATE=42`, `stratify=y`.
 
 ## Dataset
 
@@ -95,10 +110,13 @@ Raw CSV
 - `quality.py` thresholds: null critical >50%, null warn >20%, min rows critical <100, imbalance warn <20% minority class. Quality gate is re-run after cleaning inside `clean_data()`.
 - `select_features()` uses a two-pass filter: (1) drop if |corr| > 0.95 with another feature, (2) drop if variance < 1% × median variance across numeric features.
 - Engineered features fall into three categories — **domain** (churn levers: `has_social_ties`, `contract_risk_score`, `is_fiber_optic`, `num_services`, `num_protection_services`), **statistical** (`tenure_group`, `monthly_charges_zscore`, `monthly_charges_quartile`), **interaction** (`monthly_charges_per_service`, `tenure_x_contract_risk`, `charges_to_tenure_ratio`, `total_to_monthly_ratio`).
+- **Streamlit demo mode:** if `data/cleaned.csv`, `data/predictions.csv`, or `models/production_model.pkl` are missing, the dashboard falls back to seeded synthetic data so the app remains runnable without running the pipeline first.
+- **Metric priority:** Recall > F1 > Accuracy across all models — catching churners is more valuable than avoiding false positives.
 
 ## Modeling Notes (from EDA)
 
 - Class imbalance warrants `class_weight="balanced"` or SMOTE.
 - `tenure` is the strongest churn signal (median ~10 mo churned vs ~38 mo retained).
 - `MonthlyCharges` is right-skewed — consider log transform or binning before scaling.
-- `TotalCharges` is redundant with `tenure` + `MonthlyCharges`; `select_features()` should drop it via correlation filter.
+- `TotalCharges` is redundant with `tenure` + `MonthlyCharges`; `select_features()` drops it via correlation filter.
+- `contract_risk_score` is the top feature importance in the tuned XGBoost model (importance ~0.331).

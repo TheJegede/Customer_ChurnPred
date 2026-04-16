@@ -68,8 +68,6 @@ def _statistical_features(df: pd.DataFrame, out: pd.DataFrame) -> pd.DataFrame:
     Statistical transformations that normalise skewed distributions or
     bucket continuous features into interpretable segments.
     """
-    total_charges = _coerce_total_charges(df)
-
     # Tenure groups capture the customer lifecycle stage. New customers (0–12 mo)
     # are at highest risk; loyal customers (49+ mo) have proved their stickiness.
     out["tenure_group"] = pd.cut(
@@ -252,6 +250,6 @@ if __name__ == "__main__":
     print(f"\nBefore: {df.shape[1]} columns")
     print(f"After engineering: {df_feat.shape[1]} columns")
 
-    print(f"\n--- Feature Selection ---")
+    print("\n--- Feature Selection ---")
     selected_cols, df_selected = select_features(df_feat)
     print(f"After selection:   {df_selected.shape[1]} columns")

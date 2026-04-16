@@ -108,7 +108,7 @@ def clean_data(df: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
     # 4. Convert dtypes
     df, conversion_notes = _convert_dtypes(df)
     if conversion_notes:
-        print(f"  Dtype conversions:")
+        print("  Dtype conversions:")
         for note in conversion_notes:
             print(f"    {note}")
 

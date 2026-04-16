@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from pathlib import Path
 
 # Schema definition for the Telco churn dataset
 REQUIRED_COLUMNS = {

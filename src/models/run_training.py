@@ -21,11 +21,9 @@ Then open http://localhost:5000
 """
 
 import json
-import shutil
 import tempfile
 import warnings
 import joblib
-import numpy as np
 import pandas as pd
 from pathlib import Path
 
@@ -220,7 +218,7 @@ def train_and_log(
     cv_mean, cv_std = float(cv_scores.mean()), float(cv_scores.std())
     print(f"  CV AUC : {cv_mean:.4f} (+/- {cv_std:.4f})")
 
-    print(f"  Fitting on full training set ...")
+    print("  Fitting on full training set ...")
     pipeline.fit(X_train, y_train)
 
     train_metrics = compute_metrics(pipeline, X_train, y_train, "train")
@@ -308,9 +306,9 @@ def run() -> None:
     # --- Save production model ---
     joblib.dump(best_pipeline, PRODUCTION_OUT)
     print(f"\nProduction model ({best_name}) saved -> models/production_model.pkl")
-    print(f"\nTo explore all runs in the MLflow UI:")
-    print(f"  mlflow server --host 127.0.0.1 --port 5000")
-    print(f"  then open http://localhost:5000")
+    print("\nTo explore all runs in the MLflow UI:")
+    print("  mlflow server --host 127.0.0.1 --port 5000")
+    print("  then open http://localhost:5000")
 
 
 if __name__ == "__main__":

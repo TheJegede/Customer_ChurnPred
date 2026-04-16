@@ -18,7 +18,6 @@ import json
 import time
 import warnings
 import joblib
-import numpy as np
 import pandas as pd
 from pathlib import Path
 
@@ -197,7 +196,7 @@ def run() -> dict:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     with open(PARAMS_OUT, "w") as f:
         json.dump({"cv_auc": best_cv_auc, "params": best_params}, f, indent=2)
-    print(f"\nBest params saved -> models/best_params.json")
+    print("\nBest params saved -> models/best_params.json")
 
     # ------------------------------------------------------------------
     # Train final model on full training set with best params
@@ -236,7 +235,8 @@ def run() -> dict:
     for label, base in [("LR baseline", baseline_lr), ("Default XGBoost", baseline_xgb)]:
         auc_delta = metrics["auc_roc"] - base["auc_roc"]
         f1_delta  = metrics["f1"]      - base["f1"]
-        sign      = lambda d: "+" if d >= 0 else ""
+        def sign(d):
+            return "+" if d >= 0 else ""
         print(
             f"  vs {label:<16} | "
             f"AUC {sign(auc_delta)}{auc_delta:+.4f} | "
@@ -247,7 +247,7 @@ def run() -> dict:
     # Save tuned model
     # ------------------------------------------------------------------
     joblib.dump(final_pipeline, MODEL_OUT)
-    print(f"\nTuned model saved -> models/tuned_model.pkl")
+    print("\nTuned model saved -> models/tuned_model.pkl")
 
     return metrics
 
