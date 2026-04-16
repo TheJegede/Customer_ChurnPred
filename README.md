@@ -2,7 +2,7 @@
 
 > End-to-end ML pipeline that identifies telecom customers at risk of churning — from raw data through feature engineering, model tuning, and an interactive Streamlit portfolio dashboard.
 
-**[Live Demo](https://your-app-url-here)** &nbsp;|&nbsp; [GitHub Actions CI](https://github.com/TheJegede/Customer_ChurnPred/actions)
+**[Live Demo](https://https://whychurn.streamlit.app/)** &nbsp;|&nbsp; [GitHub Actions CI](https://github.com/TheJegede/Customer_ChurnPred/actions)
 
 ---
 
