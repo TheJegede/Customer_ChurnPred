@@ -501,7 +501,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("**Taiwo Jegede**")
     st.markdown("Data Scientist")
-    st.markdown("[GitHub](https://github.com) · [LinkedIn](https://linkedin.com)")
+    st.markdown("[GitHub](https://github.com/TheJegede/Customer_ChurnPred) · [LinkedIn](https://linkedin.com)")
     st.markdown("---")
     st.caption("Telco Customer Churn · 7,043 records · XGBoost · Optuna")
     if DEMO_STATE["using_demo"]:
@@ -1133,7 +1133,7 @@ elif page == "How I Built This":
         <p style="color:#64748B;font-size:0.9rem;margin:0 0 18px">
             Complete pipeline · Tests · MLflow runs · Notebooks
         </p>
-        <a href="https://github.com" target="_blank"
+        <a href="https://github.com/TheJegede/Customer_ChurnPred" target="_blank"
            style="background:#1E293B;color:white;padding:10px 28px;border-radius:8px;
                   text-decoration:none;font-weight:600;font-size:0.9rem">
             GitHub Repository ->
