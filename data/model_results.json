@@ -1,0 +1,73 @@
+{
+  "dataset": {
+    "total_rows": 7043,
+    "features_engineered": 12,
+    "features_selected": 29,
+    "churn_rate": 0.265
+  },
+  "models": [
+    {
+      "name": "Logistic Regression",
+      "label": "Baseline",
+      "cv_auc": 0.8468,
+      "cv_std": null,
+      "test_auc": 0.8478,
+      "test_f1": 0.6205,
+      "test_recall": 0.7914,
+      "test_precision": 0.5103,
+      "test_accuracy": 0.7431,
+      "train_time": "< 1s",
+      "is_winner": false,
+      "notes": "Strong linear baseline. class_weight=balanced compensates for 73/27 split. Already competitive because the engineered features linearise the churn signal well."
+    },
+    {
+      "name": "Random Forest",
+      "label": "Candidate",
+      "cv_auc": 0.8299,
+      "cv_std": 0.0092,
+      "test_auc": 0.8207,
+      "test_f1": 0.5204,
+      "test_recall": 0.4599,
+      "test_precision": 0.5993,
+      "test_accuracy": 0.7814,
+      "train_time": "0.4s",
+      "is_winner": false,
+      "notes": "High precision (0.60) but poor recall (0.46) \u2014 misses over half of churners. Unacceptable for a retention team whose cost of missing a churner far exceeds a wasted call."
+    },
+    {
+      "name": "XGBoost (default)",
+      "label": "Candidate",
+      "cv_auc": 0.8347,
+      "cv_std": 0.0103,
+      "test_auc": 0.8312,
+      "test_f1": 0.6129,
+      "test_recall": 0.7219,
+      "test_precision": 0.5325,
+      "test_accuracy": 0.76,
+      "train_time": "0.4s",
+      "is_winner": false,
+      "notes": "Best default tree model. scale_pos_weight=2.77 handles class imbalance. Solid starting point \u2014 Optuna tuning pushed it further."
+    },
+    {
+      "name": "XGBoost (Optuna tuned)",
+      "label": "Winner",
+      "cv_auc": 0.8498,
+      "cv_std": 0.0118,
+      "test_auc": 0.8481,
+      "test_f1": 0.6311,
+      "test_recall": 0.8075,
+      "test_precision": 0.518,
+      "test_accuracy": 0.7495,
+      "train_time": "0.3s",
+      "is_winner": true,
+      "notes": "30-trial Optuna TPE search. Best: depth=3, lr=0.024, n=252. Shallow trees prevent overfitting on 5 k training rows. Beats baseline on every metric."
+    }
+  ],
+  "winner": "XGBoost (Optuna tuned)",
+  "winner_reasons": [
+    "Highest recall (0.808) \u2014 catches the most churners, directly reducing revenue loss",
+    "Best CV AUC (0.850) \u2014 most reliable churn-risk ranking across all decision thresholds",
+    "Native feature importances \u2014 retention team can see exactly WHY each customer is flagged",
+    "Fastest inference of all tree models (0.3 s fit) \u2014 trivial to productionise"
+  ]
+}
