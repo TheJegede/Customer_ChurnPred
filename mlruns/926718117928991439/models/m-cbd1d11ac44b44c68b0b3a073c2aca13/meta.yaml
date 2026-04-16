@@ -1,0 +1,10 @@
+artifact_location: file:///C:/Users/jeged/Downloads/Data-Science-Project/mlruns/926718117928991439/models/m-cbd1d11ac44b44c68b0b3a073c2aca13/artifacts
+creation_timestamp: 1776353473866
+experiment_id: '926718117928991439'
+last_updated_timestamp: 1776353483417
+model_id: m-cbd1d11ac44b44c68b0b3a073c2aca13
+model_type: null
+name: model
+source_run_id: 5f394869334b4f2fb7c15151cf04b3ef
+status: 2
+status_message: null

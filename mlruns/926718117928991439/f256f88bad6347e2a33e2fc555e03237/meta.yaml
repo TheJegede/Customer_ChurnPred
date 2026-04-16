@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/jeged/Downloads/Data-Science-Project/mlruns/926718117928991439/f256f88bad6347e2a33e2fc555e03237/artifacts
+end_time: 1776353489424
+entry_point_name: ''
+experiment_id: '926718117928991439'
+lifecycle_stage: active
+run_id: f256f88bad6347e2a33e2fc555e03237
+run_name: tuned_xgboost
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1776353485715
+status: 3
+tags: []
+user_id: jeged

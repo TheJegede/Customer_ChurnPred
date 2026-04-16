@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m data.loader)",
+      "Bash(python src/data/loader.py)",
+      "Bash(python src/data/quality.py)",
+      "Bash(python src/data/cleaner.py)",
+      "Bash(python src/features/engineering.py)",
+      "Bash(python src/features/run_features.py)",
+      "Bash(python src/models/baseline.py)"
+    ]
+  }
+}
