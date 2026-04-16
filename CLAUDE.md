@@ -24,10 +24,18 @@ python src/features/run_features.py          # engineer + select → data/featur
 # Pass a custom CSV to any data script
 python src/data/loader.py "path/to/file.csv"
 
-# Run tests (tests/ is currently empty — add test files before running)
-pytest tests/
-pytest tests/test_loader.py
-pytest tests/test_loader.py::test_function_name
+# Run all tests
+pytest tests/ -v
+
+# Run a single test file
+pytest tests/test_data_quality.py -v
+
+# Run a single test by name
+pytest tests/test_features.py::TestFeatureRanges::test_contract_risk_score_range -v
+
+# Lint (must pass before CI merges)
+python -m ruff check src/ app/
+python -m ruff check src/ app/ --fix   # auto-fix safe issues
 
 # Generate app data files (run once after any model change)
 python app/generate_app_data.py   # writes data/predictions.csv + data/model_results.json
@@ -44,6 +52,12 @@ python -m mlflow server --host 127.0.0.1 --port 5000
 
 # Re-train all models and log to MLflow
 python src/models/run_training.py
+
+# Docker — build and run the Streamlit app
+docker build -t churn-streamlit .
+docker run -p 8501:8501 -v $(pwd)/data:/app/data -v $(pwd)/models:/app/models churn-streamlit
+# OR with Compose
+docker compose up --build
 ```
 
 ## Architecture
@@ -55,16 +69,19 @@ src/          # installable package (ml_project, pip install -e .)
   models/     # baseline, candidate training, Optuna tuning, MLflow logging
 app/          # streamlit_app.py (4-page portfolio dashboard) + generate_app_data.py
 notebooks/    # eda.ipynb with exploratory analysis
-tests/        # pytest suite (pending — only __init__.py exists)
+tests/        # pytest suite — test_data_quality.py, test_features.py, test_model.py
 models/       # serialized .pkl files (gitignored)
 mlruns/       # MLflow file-based tracking store (gitignored)
+.github/workflows/ci.yml  # CI: pytest + ruff on push/PR to main
 ```
 
 `src/` is the package root (`package_dir={"": "src"}` in `setup.py`), so imports are `from data.loader import ...` — not `from src.data.loader import ...`.
 
 **Within-package script imports:** modules in `src/data/` import each other with bare names (`from loader import load_csv`, `from quality import check_data_quality`) because they are run as scripts inside that directory. When imported from outside (e.g. tests), use the full package path: `from data.loader import load_csv`.
 
-**No FastAPI implementation:** `fastapi` and `uvicorn` appear in requirements.txt but no REST API currently exists. The serving layer is Streamlit only.
+**No FastAPI implementation:** `fastapi` and `uvicorn` appear in `requirements.txt` but no REST API exists. The serving layer is Streamlit only.
+
+**Test imports:** test files inject `sys.path` directly (`sys.path.insert(0, .../src/data)`) and import modules by bare name (e.g. `from quality import check_data_quality`). This mirrors how the scripts run themselves. Do not change to package-style imports in tests without updating all three test files.
 
 ## Pipeline Data Flow
 

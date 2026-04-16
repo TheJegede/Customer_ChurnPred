@@ -1,5 +1,11 @@
-/data/
-/models/
+# Data — ignore large pipeline intermediates, keep app artefacts
+/data/features.csv
+/data/cleaned.csv
+
+# Models — keep small production files, ignore large candidate models
+/models/random_forest.pkl
+/models/lightgbm.pkl
+/models/xgboost.pkl
 .env
 __pycache__/
 .ipynb_checkpoints/
